@@ -40,14 +40,32 @@ weather = {
         "dt": now
     }
 }
-
-
-app = FastAPI()
 lat = 37.564214
 lng = 127.001699
 
+weather[-1] = weather[0]
+weather_res = req.get(f"{WEATHER_API_URL}?lat={lat}&lon={lng}&appid={API_KEY}&units=metric").json()["list"]
+weather[0] = next((item for item in weather_res if item["dt"] // one_day == weather[-1]["dt"] // one_day + 1), False)
+weather[0] = {
+    "dt": weather[0]["dt"],
+    "humidity": weather[0]["main"]["humidity"],
+    "temp": weather[0]["main"]["temp"],
+    "rain":weather[0]["pop"],
+}
+weather[1] = next((item for item in weather_res if item["dt"] // one_day == weather[0]["dt"] // one_day + 1), False)
+weather[1] = {
+    "dt": weather[1]["dt"],
+    "humidity": weather[1]["main"]["humidity"],
+    "temp": weather[1]["main"]["temp"],
+    "rain": weather[1]["pop"],
+}
+
+app = FastAPI()
+
 @app.get("/{day}")
 async def main_get(day:int):
+    if day != 1 and day != 0 and day != -1:
+        return {"err": "잘못된 요청"}
     pollution_res = req.get(f"{AIR_POLLUTION_API_URL}?lat={lat}&lon={lng}&appid={API_KEY}").json().get("list")
     if "dt" not in weather[0].keys() or weather[0]["dt"] // one_day != time() // one_day:
         weather[-1] = weather[0]
