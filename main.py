@@ -20,8 +20,10 @@ API_KEY = os.environ.get("API_KEY")
 WEATHER_API_URL = 'https://api.openweathermap.org/data/2.5/forecast'
 AIR_POLLUTION_API_URL = "http://api.openweathermap.org/data/2.5/air_pollution"
 
+one_day = 10800 * 8
+now = time() // one_day * one_day
 
-news = {"dt": 1671580800, "data" : []}
+news = {"dt": now, "data" : []}
 for i in news_data:
     title = i.select_one(".cjs_t").text
     contents = i.select_one(".cjs_d").text
@@ -29,17 +31,16 @@ for i in news_data:
     
 weather = {
     -1: {
-        "dt": 1671580800
+        "dt": now - one_day * 2
     },
     0: {
-        "dt": 1671580800
+        "dt": now - one_day
     },
     1: {
-        "dt": 1671580800
+        "dt": now
     }
 }
 
-one_day = 10800 * 8
 
 app = FastAPI()
 lat = 37.564214
@@ -77,7 +78,8 @@ async def main_get(day:int):
     news_one = news["data"][randint(0, len(news["data"]))]
     return {
         **weather[day],
-        "dust": pollution_res[0]["components"]["pm10"],
+        "PM10": pollution_res[0]["components"]["pm10"],
+        "PM2_5": pollution_res[0]["components"]["pm2_5"],
         "newsTitle": news_one["title"],
         "newsContent": news_one["contents"]
     }
